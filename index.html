@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>MRT 체크리스트</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin:0; padding:0 0 60px; background:#f0f2f5; font-family:-apple-system, Arial, sans-serif; font-size:14px; color:#1a1a2e; }
+.outer { max-width:600px; margin:0 auto; background:#fff; min-height:100vh; }
+.header { background:#1E3A5F; padding:20px 20px 16px; position:sticky; top:0; z-index:10; }
+.header-top { display:flex; align-items:flex-start; justify-content:space-between; }
+.header-label { display:inline-block; background:#2E6DB4; color:#fff; font-size:11px; font-weight:bold; letter-spacing:1px; padding:3px 10px; border-radius:20px; margin-bottom:8px; }
+.header h1 { margin:0 0 3px; color:#fff; font-size:19px; font-weight:bold; }
+.header p  { margin:0; color:#A8C4E0; font-size:12px; }
+.save-status { font-size:11px; color:#A8C4E0; text-align:right; min-width:80px; line-height:1.8; }
+.save-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#4ade80; margin-right:4px; vertical-align:middle; }
+.progress-wrap { padding:10px 0 0; }
+.progress-meta { display:flex; justify-content:space-between; font-size:12px; color:#A8C4E0; margin-bottom:6px; }
+.progress-track { background:rgba(255,255,255,0.2); border-radius:99px; height:7px; overflow:hidden; }
+.progress-fill  { height:7px; border-radius:99px; background:#4ade80; width:0%; transition:width 0.35s ease; }
+.notice { margin-top:10px; padding:8px 0 2px; font-size:11px; color:rgba(168,196,224,0.85); line-height:1.6; text-align:center; }
+.event-box { margin:16px 20px; padding:14px 16px; background:#F8FAFC; border:1px solid #e5e7eb; border-radius:10px; }
+.event-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.event-row:last-child { margin-bottom:0; }
+.event-label { font-size:12px; font-weight:bold; color:#6b7280; white-space:nowrap; min-width:90px; }
+.event-input { flex:1; height:36px; border:1px solid #e5e7eb; border-radius:6px; padding:0 10px; font-size:13px; color:#111827; font-family:-apple-system, Arial, sans-serif; background:#fff; outline:none; }
+.event-input:focus { border-color:#2E6DB4; }
+.event-input::placeholder { color:#c4c4c4; }
+.section { padding:18px 20px 6px; }
+.section-title { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.step-badge { font-size:11px; font-weight:bold; padding:3px 10px; border-radius:20px; letter-spacing:0.5px; white-space:nowrap; }
+.step-badge.mr  { background:#DBEAFE; color:#1E3A5F; }
+.step-badge.mkt { background:#F3F4F6; color:#6b7280; }
+.section-name { font-size:13px; font-weight:bold; color:#374151; }
+.item { display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; margin-bottom:7px; cursor:pointer; user-select:none; }
+.item:active { background:#f3f4f6; }
+.item.done { background:#f0fdf4; border-color:#bbf7d0; }
+.item.done .item-label { text-decoration:line-through; color:#9ca3af; }
+.item.done .item-sub   { color:#c4c4c4; }
+.item.done .item-note  { opacity:0.4; }
+.cb { width:22px; height:22px; flex-shrink:0; border:2px solid #d1d5db; border-radius:6px; background:#fff; position:relative; transition:all 0.15s; }
+.cb.checked { background:#2E6DB4; border-color:#2E6DB4; }
+.cb.checked::after { content:''; position:absolute; left:4px; top:2px; width:10px; height:6px; border-left:2.5px solid #fff; border-bottom:2.5px solid #fff; transform:rotate(-45deg); }
+.item-mkt { display:flex; align-items:flex-start; gap:12px; padding:11px 14px; border-radius:8px; border:1px dashed #e5e7eb; background:#fafafa; margin-bottom:7px; opacity:0.65; }
+.mkt-icon { width:22px; height:22px; flex-shrink:0; border-radius:6px; background:#F3F4F6; display:flex; align-items:center; justify-content:center; font-size:12px; color:#9ca3af; }
+.item-body  { flex:1; min-width:0; }
+.item-label { font-size:14px; color:#111827; line-height:1.4; font-weight:500; }
+.item-sub   { font-size:12px; color:#6b7280; margin-top:4px; line-height:1.6; }
+.item-sub ul { margin:5px 0 0; padding-left:16px; }
+.item-sub ul li { margin-bottom:3px; }
+.item-note  { margin-top:6px; font-size:11px; color:#2E6DB4; background:#EFF6FF; border-left:3px solid #2E6DB4; padding:5px 8px; border-radius:0 4px 4px 0; line-height:1.5; }
+.mkt-label  { font-size:14px; color:#9ca3af; line-height:1.4; }
+hr { border:none; border-top:6px solid #f0f2f5; margin:6px 0; }
+.memo-wrap  { padding:14px 20px; }
+.memo-label { font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:6px; }
+.memo-box { width:100%; min-height:80px; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:13px; color:#374151; font-family:-apple-system, Arial, sans-serif; resize:vertical; background:#fafafa; outline:none; }
+.memo-box:focus { border-color:#2E6DB4; background:#fff; }
+.footer { padding:12px 20px 24px; }
+.reset-btn { width:100%; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; color:#9ca3af; font-size:13px; cursor:pointer; transition:all 0.2s; }
+.reset-btn.confirm-mode { background:#FEF2F2; border-color:#FECACA; color:#DC2626; }
+.reset-hint { text-align:center; font-size:11px; color:#EF4444; margin-top:6px; display:none; }
+.reset-hint.show { display:block; }
+.footer-note { text-align:center; font-size:11px; color:#c4c4c4; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="outer">
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-label">MR 전용</div>
+        <h1>MRT 체크리스트</h1>
+        <p>항목을 탭하여 체크 · 자동 저장</p>
+      </div>
+      <div class="save-status">
+        <span class="save-dot" id="save-dot"></span>
+        <span id="save-label">불러오는 중</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>MR 항목 진행률</span>
+        <span id="prog-label">0 / 8 완료</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="prog-bar"></div>
+      </div>
+    </div>
+    <div class="notice">MRT 자기주도 체크리스트입니다. 마케팅에 공유되지 않습니다 · 이 기기 브라우저에 자동 저장됩니다</div>
+  </div>
+
+  <div class="event-box">
+    <div class="event-row">
+      <span class="event-label">행사명</span>
+      <input class="event-input" id="ev-event" type="text" placeholder="예) 2025 MRT 강연" oninput="scheduleSave()">
+    </div>
+    <div class="event-row">
+      <span class="event-label">연자</span>
+      <input class="event-input" id="ev-speaker" type="text" placeholder="이름 입력" oninput="scheduleSave()">
+    </div>
+  </div>
+
+  <!-- STEP 1 : MR -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 1</span>
+      <span class="section-name">MR — 사전 준비</span>
+    </div>
+    <div class="item" data-id="s1-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s1-1"></div>
+      <div class="item-body">
+        <div class="item-label">연자 확정</div>
+        <div class="item-sub">강연 의뢰 전 Speaker Evaluation 기준 확인 후 컨택
+          <ul>
+            <li>보드 취득 후 5년 이상 경력?</li>
+            <li>Full / Associate / Assistant Professor? (임상교수 해당 안됨)</li>
+            <li>Peer-reviewed journal 논문 5편 이상?</li>
+            <li>Speaker 또는 Chair 경험?</li>
+            <li>학회 또는 위원회 활동 이력?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="item" data-id="s1-2" onclick="toggle(this)">
+      <div class="cb" id="cb-s1-2"></div>
+      <div class="item-body">
+        <div class="item-label">희망 일자 및 장소 마케팅 전달</div>
+        <div class="item-sub">연자와 협의한 희망 일정과 장소를 정리하여 담당 PM에게 전달 — 후보 일정이 여러 개라면 함께 전달</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 2 : 마케팅 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mkt">STEP 2</span>
+      <span class="section-name" style="color:#9ca3af;">마케팅 진행 (참고)</span>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">①</div>
+      <div class="item-body"><div class="mkt-label">일자·장소 확정 → 리딩 MR 전달</div></div>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">②</div>
+      <div class="item-body"><div class="mkt-label">주제 선정 · 강연 기안</div></div>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">③</div>
+      <div class="item-body"><div class="mkt-label">참고자료 슬라이드 제작 → 리딩 MR 전달</div></div>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">④</div>
+      <div class="item-body"><div class="mkt-label">ZOOM 개설 · 아웃룩 일정 공유 및 홍보</div></div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 3 : MR -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 3</span>
+      <span class="section-name">MR — 연자 준비</span>
+    </div>
+    <div class="item" data-id="s3-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s3-1"></div>
+      <div class="item-body">
+        <div class="item-label">연자에게 메일 안내</div>
+        <div class="item-sub">슬라이드, 일정, ZOOM 주소 등 행사 관련 내용 정리하여 연자에게 메일 전달</div>
+        <div class="item-note">ECM 샘플 파일 참고</div>
+      </div>
+    </div>
+    <div class="item" data-id="s3-2" onclick="toggle(this)">
+      <div class="cb" id="cb-s3-2"></div>
+      <div class="item-body">
+        <div class="item-label">연자 소개 슬라이드 제작</div>
+        <div class="item-note">ECM 샘플 파일 참고</div>
+      </div>
+    </div>
+    <div class="item" data-id="s3-3" onclick="toggle(this)">
+      <div class="cb" id="cb-s3-3"></div>
+      <div class="item-body">
+        <div class="item-label">사전 질문 준비</div>
+        <div class="item-note">ECM 샘플 파일 참고</div>
+      </div>
+    </div>
+    <div class="item" data-id="s3-4" onclick="toggle(this)">
+      <div class="cb" id="cb-s3-4"></div>
+      <div class="item-body">
+        <div class="item-label">계약서 수취</div>
+        <div class="item-sub">ECM 계약서 확인 후 수정 → 연자 서명 → 마케팅 전달</div>
+        <div class="item-note">Portal 등록 계좌와 동일 계좌로 수령 / Vendor 등록 필요 시 신분증·통장 사본을 담당 PM에게 전달</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 4 : MR 실행일 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 4 · 실행일</span>
+      <span class="section-name">MR — 현장 리딩</span>
+    </div>
+    <div class="item" data-id="s4-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s4-1"></div>
+      <div class="item-body">
+        <div class="item-label">증빙 전달</div>
+        <div class="item-sub">시작·종료 시간 캡쳐하여 전달</div>
+      </div>
+    </div>
+    <div class="item" data-id="s4-2" onclick="toggle(this)">
+      <div class="cb" id="cb-s4-2"></div>
+      <div class="item-body">
+        <div class="item-label">현장 리딩</div>
+        <div class="item-sub">진행 순서에 맞춰 전체 흐름 리딩</div>
+        <div class="item-note">오프닝 → 연자 소개 → 강의 → 질의응답 → 클로징 순서로 진행</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 5 : 마케팅 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mkt">STEP 5</span>
+      <span class="section-name" style="color:#9ca3af;">마케팅 진행 (참고)</span>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">①</div>
+      <div class="item-body"><div class="mkt-label">DSCOVER 강연 서명 개설</div></div>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">②</div>
+      <div class="item-body"><div class="mkt-label">계약서 확인 (강연료·계좌·서명)</div></div>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">③</div>
+      <div class="item-body"><div class="mkt-label">강연 품의 진행</div></div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="memo-wrap">
+    <div class="memo-label">현장 메모</div>
+    <textarea class="memo-box" id="memo" placeholder="특이사항, 요청사항 등 자유롭게 입력하세요..."></textarea>
+  </div>
+
+  <div class="footer">
+    <button class="reset-btn" id="reset-btn" onclick="handleReset()">전체 초기화</button>
+    <div class="reset-hint" id="reset-hint">한 번 더 탭하면 초기화됩니다</div>
+    <div class="footer-note">체크 상태는 이 기기 브라우저에 자동 저장됩니다</div>
+  </div>
+
+</div>
+<script>
+var KEY    = 'mrt_cl_v2';
+var MR_IDS = ['s1-1','s1-2','s3-1','s3-2','s3-3','s3-4','s4-1','s4-2'];
+var timer = null; var resetTimer = null; var resetReady = false; var canSave = false;
+try { localStorage.setItem('_p','1'); localStorage.removeItem('_p'); canSave = true; } catch(e) {}
+function dot(ok) { document.getElementById('save-dot').style.background = ok ? '#4ade80' : '#facc15'; }
+function setLabel(t) { document.getElementById('save-label').textContent = t; }
+function applyDone(id, done) {
+  var el=document.querySelector('[data-id="'+id+'"]'), cb=document.getElementById('cb-'+id);
+  if (!el||!cb) return;
+  el.classList.toggle('done',done); cb.classList.toggle('checked',done);
+}
+function load() {
+  if (!canSave) { dot(false); setLabel('저장 불가'); updateProgress(); return; }
+  try {
+    var raw=localStorage.getItem(KEY);
+    if (!raw) { dot(true); setLabel('새 체크리스트'); updateProgress(); return; }
+    var d=JSON.parse(raw);
+    if (d.event)   document.getElementById('ev-event').value   = d.event;
+    if (d.speaker) document.getElementById('ev-speaker').value = d.speaker;
+    MR_IDS.forEach(function(id){ if(d.checks&&d.checks[id]) applyDone(id,true); });
+    if (d.memo) document.getElementById('memo').value = d.memo;
+    dot(true); setLabel(d.time ? d.time+' 저장' : '불러옴');
+  } catch(e) { dot(false); setLabel('오류'); }
+  updateProgress();
+}
+function save() {
+  if (!canSave) return;
+  try {
+    var checks={};
+    MR_IDS.forEach(function(id){ var el=document.querySelector('[data-id="'+id+'"]'); checks[id]=el?el.classList.contains('done'):false; });
+    var n=new Date(), t=(n.getMonth()+1)+'/'+n.getDate()+' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+    localStorage.setItem(KEY, JSON.stringify({ event:document.getElementById('ev-event').value, speaker:document.getElementById('ev-speaker').value, checks:checks, memo:document.getElementById('memo').value, time:t }));
+    dot(true); setLabel(t+' 저장');
+  } catch(e) { dot(false); setLabel('저장 실패'); }
+}
+function scheduleSave() { dot(false); setLabel('저장 중...'); clearTimeout(timer); timer=setTimeout(save,700); }
+function toggle(el) { applyDone(el.getAttribute('data-id'),!el.classList.contains('done')); updateProgress(); scheduleSave(); }
+document.getElementById('memo').addEventListener('input', scheduleSave);
+function updateProgress() {
+  var done=document.querySelectorAll('.item.done').length, total=MR_IDS.length;
+  document.getElementById('prog-bar').style.width=Math.round(done/total*100)+'%';
+  document.getElementById('prog-label').textContent=done+' / '+total+' 완료';
+}
+function handleReset() {
+  var btn=document.getElementById('reset-btn'), hint=document.getElementById('reset-hint');
+  if (!resetReady) {
+    resetReady=true; btn.classList.add('confirm-mode'); btn.textContent='정말 초기화할까요?'; hint.classList.add('show');
+    clearTimeout(resetTimer); resetTimer=setTimeout(function(){ resetReady=false; btn.classList.remove('confirm-mode'); btn.textContent='전체 초기화'; hint.classList.remove('show'); },3000);
+  } else {
+    resetReady=false; clearTimeout(resetTimer); btn.classList.remove('confirm-mode'); btn.textContent='전체 초기화'; hint.classList.remove('show');
+    ['ev-event','ev-speaker','memo'].forEach(function(id){ document.getElementById(id).value=''; });
+    MR_IDS.forEach(function(id){ applyDone(id,false); }); updateProgress(); save();
+  }
+}
+load();
+</script>
+</body>
+</html>
